@@ -32,9 +32,9 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
-        .zflecs = .{
-            .url = "git+https://github.com/zig-gamedev/zflecs/?ref=HEAD#c832982bdde5ec0d4cd21b4555badfed904ccec4",
-            .hash = "zflecs-0.2.0-dev-1PN3ysolPAABJMgsIgYPrs0G278g-f7mCt9kNG9IMq8V",
+        .knoedel = .{
+            .url = "git+https://github.com/Lommix/knoedel",
+            .hash = "knoedel-0.0.1-sDb4Ggg0AgA_nhoeSuMjZlFelIKxgl0nOt6IShwzKLAR",
         },
         .raylib_zig = .{
             .url = "git+https://github.com/raylib-zig/raylib-zig?ref=devel#cd71c85d571027ac8033357f83b124ee051825b3",

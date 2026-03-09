@@ -1,53 +1,46 @@
+// gameplay.zig — Gameplay plugin.
+// Shows "game mode!" text centered on screen.
+// Press Escape to return to the menu.
+
 const rl = @import("rl");
-const ecs = @import("zflecs");
 const game = @import("game.zig");
-const comp = @import("components.zig");
 const player = @import("player.zig");
-const enemy = @import("enemy.zig");
+const resources = @import("./resources/common.zig");
+const kn = game.kn;
 
-var game_ref: ?*game.Game = null;
+/// Called by main.zig via app.addPlugin(). Registers our systems.
+pub fn plugin(app: *kn.App) !void {
+    // Only runs while we're in the gameplay state.
 
-fn gameplayInputSystem(_: *ecs.iter_t) callconv(.c) void {
-    const g = game_ref orelse return;
-    if (g.state != .gameplay) return;
+    try app.addPlugin(player);
 
+    // move this above line above if there is something more important to do before the player is added.
+    try app.addSystemEx(game.Schedule.update, &updateGameplay, kn.InState(game.AppState.gameplay));
+    try app.addSystemEx(game.Schedule.draw, &drawGameplay, kn.InState(game.AppState.gameplay));
+
+    // only add plugins here or after the player plugin has been initialised.
+    // Otherwise there'll be a race condition due to it not being added as a resource yet.
+}
+
+fn updateGameplay(state: kn.ResMut(kn.State(game.AppState))) !void {
+    // Escape returns to the menu.
     if (rl.isKeyPressed(.escape)) {
-        g.setState(.menu);
+        state.inner.set(.menu);
     }
 }
 
-fn addRawSystem(world: *ecs.world_t, name: [*:0]const u8, phase: ecs.entity_t, callback: ecs.iter_action_t) void {
-    var desc = ecs.system_desc_t{};
-    desc.callback = callback;
-    _ = ecs.SYSTEM(world, name, phase, &desc);
+/// Draw the gameplay screen with centered text and handle Escape.
+fn drawGameplay(state: kn.ResMut(kn.State(game.AppState))) !void {
+    _ = state;
+
+    // const text = "game mode!";
+    // const font_size: i32 = 20;
+
+    // // Center the text on the simulated screen.
+    // const text_w = rl.measureText(text, font_size);
+
+    // const x = @divTrunc(game.sim_width - text_w, 2);
+    // const y = @divTrunc(game.sim_height - font_size, 2);
+
+    // rl.drawText(text, x, y, font_size, rl.Color.dark_gray);
 }
-
-pub const GameplayModule = struct {
-    pub fn init(g: *game.Game) void {
-        game_ref = g;
-
-        var desc = ecs.component_desc_t{ .entity = 0, .type = .{ .size = 0, .alignment = 0 } };
-        _ = ecs.module_init(g.world, "GameplayModule", &desc);
-
-        ecs.COMPONENT(g.world, comp.Position);
-        ecs.COMPONENT(g.world, comp.Velocity);
-        ecs.COMPONENT(g.world, comp.Speed);
-        ecs.COMPONENT(g.world, comp.Circle);
-        ecs.COMPONENT(g.world, comp.Rect);
-
-        addRawSystem(g.world, "GameplayInput", ecs.PreUpdate, gameplayInputSystem);
-
-        player.PlayerModule.init(g);
-        enemy.EnemyModule.init(g);
-    }
-
-    pub fn onEnter(g: *game.Game) void {
-        player.PlayerModule.onEnter(g);
-        enemy.EnemyModule.onEnter(g);
-    }
-
-    pub fn onExit(g: *game.Game) void {
-        player.PlayerModule.onExit(g);
-        enemy.EnemyModule.onExit(g);
-    }
-};
