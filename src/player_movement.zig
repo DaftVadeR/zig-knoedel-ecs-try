@@ -8,20 +8,25 @@ const kn = game.kn;
 
 /// Called by main.zig via app.addPlugin(). Registers our systems.
 pub fn plugin(app: *kn.App) !void {
-    try app.addSystemEx(game.Schedule.load, &addComponents, kn.OnEnter(game.AppState.gameplay));
+    // has to be every frame to find player after spawn command.
+    try app.addSystemEx(game.Schedule.update, &addComponents, kn.InState(game.AppState.gameplay));
 
     try app.addSystemEx(game.Schedule.update, &updateMovement, kn.InState(game.AppState.gameplay));
+
     try app.addSystemEx(game.Schedule.draw, &draw, kn.InState(game.AppState.gameplay));
 }
 
-fn addComponents(query: kn.Query(.{components.Player}), cmd: kn.App.Commands) !void {
+fn addComponents(
+    query: kn.QueryFiltered(.{components.Player}, .{kn.WithOut(components.Movable)}),
+    cmd: kn.App.Commands,
+) !void {
     var it = query.iterQ(struct { entity: kn.Entity });
 
     // TODO: set to actual speed value based on player class
     while (it.next()) |en| {
         try cmd.insert(en.entity, .{
             components.Movable{
-                .speed = rl.Vector2.zero(),
+                .speed = rl.Vector2{ .x = 200, .y = 200 },
             },
         });
     }
@@ -31,60 +36,43 @@ fn addComponents(query: kn.Query(.{components.Player}), cmd: kn.App.Commands) !v
 fn updateMovement(
     input_res: kn.Res(resources.Input),
     // player: kn.Query(components.Player),
-    player_query: kn.Query(.{ components.Player, kn.Mut(components.Transform) }),
+    player_query: kn.Query(.{ components.Player, kn.Mut(components.Transform), components.Movable }),
 ) !void {
-    _ = player_query;
-    _ = input_res;
+    // std.debug.print("running update movement\n", .{});
 
-    // const frameTime = rl.getFrameTime();
-    //
-    // const input = input_res.inner;
-    //
-    // var t = player_query.iterQ(struct {
-    //     player: *const components.Player,
-    //     transform: *components.Transform,
-    // });
+    const frameTime = rl.getFrameTime();
+
+    var t = player_query.iterQ(struct {
+        player: *const components.Player,
+        transform: *components.Transform,
+        movable: *const components.Movable,
+    });
 
     // -------------------------------------- //
 
-    // while (it.next()) |en| {
-    //     if (input_res.inner.input_normalised.x != 0 or input_res.inner.input_normalised.y != 0) {
-    //         self.player.position.x += pd.attributes.speed * frameTime * normalized.x;
-    //         self.player.position.y += pd.attributes.speed * frameTime * normalized.y;
-    //     }
-    //     en.transform.position.x += frameTime * input.input_normalised.x;
-    //     en.transform.position.y += frameTime * input.input_normalised.y;
-    //
-    //     en.player.rotation = std.math.atan2(input.input_normalised.y, input.input_normalised.x);
-    // }
-    //
+    while (t.next()) |en| {
+        const normalised = input_res.inner.input_normalised;
 
-    // ----- OLLLDDD DRAW CODE -----
+        // move player based on speed
+        // std.debug.print("old position: {any}\n", .{en.transform.*.position});
 
-    // // Always tick the active anim regardless of input.
-    // pd.anims[pd.active_anim].update(frameTime);
+        if (normalised.x != 0 or normalised.y != 0) {
+            en.transform.*.position.x += en.movable.speed.x * frameTime * normalised.x;
+            en.transform.*.position.y += en.movable.speed.y * frameTime * normalised.y;
 
-    // // Switch animation based on whether the player is moving.
-    // if (inputDir.x == 0 and inputDir.y == 0) {
-    //     pd.active_anim = 0; // idle
-    // } else {
-    //     pd.active_anim = 1; // run
-    // }
+            // std.debug.print("new position: {any}\n", .{en.transform.*.position});
 
-    // // Update facing direction based on horizontal input.
-    // if (inputDir.x < 0) {
-    //     self.player.transform.x = -1;
-    // } else if (inputDir.x > 0) {
-    //     self.player.transform.x = 1;
-    // }
+            // Only update rotation when there's actual input
+            en.transform.*.rotation = std.math.atan2(normalised.y, normalised.x);
 
-    // Center the text on the simulated screen.
-    // const text_w = rl.measureText(text, font_size);
-
-    // const x = @divTrunc(game.sim_width - text_w, 1);
-    // const y = @divTrunc(game.sim_height - font_size, 1);
-
-    // rl.drawText(text, x, y, font_size, rl.Color.dark_gray);
+            // facing, for rendering facing direction of sprite or shape
+            if (normalised.x < 0) {
+                en.transform.*.facing = -1;
+            } else if (normalised.x > 0) {
+                en.transform.*.facing = 1;
+            }
+        }
+    }
 }
 
 /// Draw the gameplay screen with centered text and handle Escape.

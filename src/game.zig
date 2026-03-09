@@ -20,7 +20,7 @@ pub const kn = knoedel.Knoedel(.{
 /// The schedules (phases) our game loop runs through each frame.
 /// main.zig calls app.run() once for each of these per frame.
 pub const Schedule = enum {
-    load, // rendering (all raylib draw calls happen here)
+    load, // unused
     update, // game logic (state transitions, input, etc.)
     draw, // rendering (all raylib draw calls happen here)
     cleanup, // housekeeping (knoedel cleans up scoped entities, etc.)
