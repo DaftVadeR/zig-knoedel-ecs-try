@@ -11,10 +11,6 @@ pub const Player = struct {
     class: PlayerClass,
 };
 
-pub const Armable = struct {
-    weapons: std.ArrayList(Weapon),
-};
-
 pub const Projectile = struct {
     origin: rl.Vector2,
     rotation: f32,

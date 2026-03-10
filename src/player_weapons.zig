@@ -5,13 +5,14 @@ const std = @import("std");
 const resources = @import("./resources/common.zig");
 const components = @import("./components/common.zig");
 const player_components = @import("./components/player.zig");
+const player_content = @import("./player_content/weapons.zig");
 const pcw = @import("./player_content/weapons.zig");
 
 const kn = game.kn;
 
 pub fn plugin(app: *kn.App) !void {
-    // deinit alloc'ed weapons
-    try app.addSystemEx(game.Schedule.cleanup, &deinit, kn.OnExit(game.AppState.gameplay));
+    // deinit alloc'ed weapons - will happen automatically now
+    // try app.addSystemEx(game.Schedule.cleanup, &deinit, kn.OnExit(game.AppState.gameplay));
 
     // runs once
     try app.addSystemEx(game.Schedule.update, &addComponents, kn.InState(game.AppState.gameplay));
@@ -24,60 +25,59 @@ pub fn plugin(app: *kn.App) !void {
 }
 
 fn addComponents(
-    alloc: kn.Alloc,
-    query: kn.QueryFiltered(.{
+    player_query: kn.Query(.{
         player_components.Player,
-    }, .{
-        kn.WithOut(player_components.Armable),
     }),
+    query: kn.Query(
+        .{
+            player_components.Weapon,
+        },
+    ),
     cmd: kn.App.Commands,
 ) !void {
-    var it = query.iterQ(struct { player: *const player_components.Player, entity: kn.Entity });
+    if (query.count() > 0) {
+        return;
+    }
 
-    while (it.next()) |en| {
+    var player_it = player_query.iterQ(struct { player: *const player_components.Player, entity: kn.Entity });
+
+    while (player_it.next()) |player_en| {
+        _ = player_en; // use for weapon somehow later?
+
         std.debug.print("add weapons to player\n", .{});
 
-        const armable = pcw.getArmableForPlayerClass(alloc, en.player.class);
-
-        try cmd.insert(en.entity, .{armable});
-    }
-}
-
-fn deinit(alloc: kn.Alloc, query: kn.Query(.{ player_components.Player, kn.Mut(player_components.Armable) })) !void {
-    var it = query.iterQ(struct { armable: *player_components.Armable });
-
-    while (it.next()) |en| {
-        // first projectiles.
-        // should not have to do this...
-        // for (en.armable.weapons.items) |*wpn| {
-        // wpn.projectiles.deinit(alloc.world);
-        // }
-
-        en.armable.weapons.deinit(alloc.world);
+        _ = try cmd.spawn(.{
+            player_content.getEnergyWeapon(),
+            kn.StateScoped(game.AppState){ .state = .gameplay },
+        });
     }
 }
 
 fn updateWeapons(
     cmd: kn.Commands,
-    weapons: kn.Query(.{
-        player_components.Player,
-        kn.Mut(player_components.Armable),
-        components.Transform,
+    player_query: kn.QueryFiltered(.{components.Transform}, .{kn.With(player_components.Player)}),
+    weapons_query: kn.Query(.{
+        kn.Mut(player_components.Weapon),
     }),
 ) !void {
-    var it = weapons.iterQ(
+    var it = weapons_query.iterQ(
         struct {
-            armable: *player_components.Armable,
-            player: *const player_components.Player,
+            weapon: *player_components.Weapon,
+        },
+    );
+
+    var player_it = player_query.iterQ(
+        struct {
             transform: *const components.Transform,
         },
     );
 
-    while (it.next()) |en| {
-        for (en.armable.weapons.items) |*wpn| {
-            if (wpn.isProjectileReady()) {
+    // only ever one player so should be fine
+    while (player_it.next()) |player_en| {
+        while (it.next()) |weapon_en| {
+            if (weapon_en.weapon.isProjectileReady()) {
                 _ = try cmd.spawn(.{
-                    wpn.getProjectile(en.transform),
+                    weapon_en.weapon.getProjectile(player_en.transform),
                     kn.StateScoped(game.AppState){ .state = .gameplay },
                 });
             }
@@ -89,8 +89,6 @@ fn updateProjectiles(
     cmd: kn.Commands,
     projectiles: kn.Query(.{
         kn.Mut(player_components.Projectile),
-        // kn.Mut(player_components.Armable),
-        // components.Transform,
     }),
 ) !void {
     var it = projectiles.iterQ(
@@ -101,7 +99,6 @@ fn updateProjectiles(
     );
 
     while (it.next()) |en| {
-        // performant way to remove projectiles without allocation
         const distance = en.projectile.position.distance(en.projectile.origin);
 
         if (distance > en.projectile.range) {
