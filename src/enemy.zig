@@ -13,7 +13,7 @@ const kn = game.kn;
 
 pub fn plugin(app: *kn.App) !void {
     try app.addPlugin(enemy_spawner);
-    // try app.addPlugin(enemy_movement);
+    try app.addPlugin(enemy_movement);
     try app.addPlugin(enemy_shape);
 
     try app.addSystemEx(game.Schedule.update, &update, kn.InState(game.AppState.gameplay));

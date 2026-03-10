@@ -8,26 +8,26 @@ pub fn getEnemyMap(alloc: kn.Alloc) !std.AutoHashMap(i32, EnemyLevel) {
 
     try map.put(1, .{
         .enemy_type = .Goblin,
-        .wave_scale = 0.2, // size relative to a standard wave
-        .wave_frequency = 15.0, // every 15 seconds
+        .wave_scale = 1, // size relative to a standard wave
+        .wave_frequency = 10.0, // every 15 seconds
     });
 
     try map.put(2, .{
         .enemy_type = .Goblin,
-        .wave_scale = 0.4, // size relative to a standard wave
-        .wave_frequency = 15.0, // every 15 seconds
+        .wave_scale = 2, // size relative to a standard wave
+        .wave_frequency = 10.0, // every 15 seconds
     });
 
     try map.put(3, .{
         .enemy_type = .GoblinShadow,
-        .wave_scale = 0.6, // size relative to a standard wave
-        .wave_frequency = 15.0, // every 15 seconds
+        .wave_scale = 3, // size relative to a standard wave
+        .wave_frequency = 8.0, // every 15 seconds
     });
 
     try map.put(4, .{
         .enemy_type = .GoblinShadow,
-        .wave_scale = 0.8, // size relative to a standard wave
-        .wave_frequency = 10.0, // every 15 seconds
+        .wave_scale = 4, // size relative to a standard wave
+        .wave_frequency = 7.0, // every 15 seconds
     });
 
     return map;

@@ -5,7 +5,7 @@ const player_components = @import("components/player.zig");
 const player_input = @import("player_input.zig");
 const player_movement = @import("player_movement.zig");
 const player_weapons = @import("player_weapons.zig");
-const player_shape = @import("player_shape.zig");
+const player_sprite = @import("player_sprite.zig");
 
 const kn = game.kn;
 
@@ -14,7 +14,7 @@ pub fn plugin(app: *kn.App) !void {
     try app.addSystemEx(game.Schedule.update, &despawn, kn.OnExit(game.AppState.gameplay));
 
     try app.addPlugin(player_input);
-    try app.addPlugin(player_shape);
+    try app.addPlugin(player_sprite);
     try app.addPlugin(player_movement);
     try app.addPlugin(player_weapons);
 
