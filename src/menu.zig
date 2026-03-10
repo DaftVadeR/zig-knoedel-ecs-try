@@ -1,17 +1,12 @@
-// menu.zig — Menu plugin.
-// Draws a centered PLAY button. Clicking it transitions to gameplay.
-
 const rl = @import("rl");
 const game = @import("game.zig");
 const kn = game.kn;
 
-/// Called by main.zig via app.addPlugin(). Registers our systems.
 pub fn plugin(app: *kn.App) !void {
     // Only runs while we're in the menu state.
     try app.addSystemEx(game.Schedule.draw, &drawMenu, kn.InState(game.AppState.menu));
 }
 
-/// Draw the menu screen with a centered PLAY button.
 fn drawMenu(state: kn.ResMut(kn.State(game.AppState))) !void {
     const sw = game.sim_width;
     const sh = game.sim_height;

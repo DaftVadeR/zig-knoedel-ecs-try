@@ -1,10 +1,12 @@
 const rl = @import("rl");
 const game = @import("game.zig");
 const components = @import("components/common.zig");
+const player_components = @import("components/player.zig");
 const player_input = @import("player_input.zig");
 const player_movement = @import("player_movement.zig");
 const player_weapons = @import("player_weapons.zig");
 const player_shape = @import("player_shape.zig");
+
 const kn = game.kn;
 
 pub fn plugin(app: *kn.App) !void {
@@ -22,10 +24,12 @@ pub fn plugin(app: *kn.App) !void {
 
 fn spawn(cmd: kn.App.Commands) !void {
     _ = try cmd.spawn(.{
-        components.Player{},
+        player_components.Player{
+            .class = .default,
+        },
         components.Transform{
             .facing = 1, //facing right
-            .size = .{ .x = 64, .y = 64 },
+            .size = .{ .x = 32, .y = 32 },
             .rotation = 0,
             .scale = rl.Vector2.one(),
             .position = .{
@@ -40,7 +44,7 @@ fn spawn(cmd: kn.App.Commands) !void {
 }
 
 fn despawn(
-    query: kn.Query(.{components.Player}),
+    query: kn.Query(.{player_components.Player}),
     cmd: kn.App.Commands,
 ) !void {
     var it = query.iterQ(struct { entity: kn.Entity });

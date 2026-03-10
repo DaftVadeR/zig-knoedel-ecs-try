@@ -3,10 +3,10 @@ const std = @import("std");
 const game = @import("game.zig");
 const resources = @import("./resources/common.zig");
 const components = @import("./components/common.zig");
+const player_components = @import("./components/player.zig");
 
 const kn = game.kn;
 
-/// Called by main.zig via app.addPlugin(). Registers our systems.
 pub fn plugin(app: *kn.App) !void {
     // has to be every frame to find player after spawn command.
     try app.addSystemEx(game.Schedule.update, &addComponents, kn.InState(game.AppState.gameplay));
@@ -17,7 +17,7 @@ pub fn plugin(app: *kn.App) !void {
 }
 
 fn addComponents(
-    query: kn.QueryFiltered(.{components.Player}, .{kn.WithOut(components.Movable)}),
+    query: kn.QueryFiltered(.{player_components.Player}, .{kn.WithOut(components.Movable)}),
     cmd: kn.App.Commands,
 ) !void {
     var it = query.iterQ(struct { entity: kn.Entity });
@@ -32,18 +32,17 @@ fn addComponents(
     }
 }
 
-/// Draw the gameplay screen with centered text and handle Escape.
 fn updateMovement(
     input_res: kn.Res(resources.Input),
     // player: kn.Query(components.Player),
-    player_query: kn.Query(.{ components.Player, kn.Mut(components.Transform), components.Movable }),
+    player_query: kn.Query(.{ player_components.Player, kn.Mut(components.Transform), components.Movable }),
 ) !void {
     // std.debug.print("running update movement\n", .{});
 
     const frameTime = rl.getFrameTime();
 
     var t = player_query.iterQ(struct {
-        player: *const components.Player,
+        player: *const player_components.Player,
         transform: *components.Transform,
         movable: *const components.Movable,
     });
@@ -75,7 +74,6 @@ fn updateMovement(
     }
 }
 
-/// Draw the gameplay screen with centered text and handle Escape.
 fn draw(state: kn.ResMut(kn.State(game.AppState))) !void {
     _ = state;
 }

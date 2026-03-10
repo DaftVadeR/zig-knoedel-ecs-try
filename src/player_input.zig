@@ -1,5 +1,5 @@
-// this file just updates component values based on the input state. The rest of the application reads
-// this and acts on it as expected.
+// this file just updates input resource values based on the input state.
+// The rest of the application reads this and acts on it as expected.
 
 const rl = @import("rl");
 const game = @import("game.zig");
@@ -14,7 +14,6 @@ fn getDefaultInputState() resources.Input {
     };
 }
 
-/// Called by main.zig via app.addPlugin(). Registers our systems.
 pub fn plugin(app: *kn.App) !void {
     try app.addResource(getDefaultInputState());
 
@@ -34,7 +33,6 @@ pub fn plugin(app: *kn.App) !void {
 //     try cmd.removeResources(resources.Input);
 // }
 
-/// Draw the gameplay screen with centered text and handle Escape.
 fn update(
     inputState: kn.ResMut(resources.Input),
     // player: kn.Query(components.Player),
@@ -50,7 +48,6 @@ fn update(
     inputState.inner.input_normalised = rl.Vector2.normalize(inputDir);
 }
 
-// Draw the gameplay screen with centered text and handle Escape.
 // fn draw(state: kn.ResMut(kn.State(game.AppState))) !void {
 //     _ = state;
 // }

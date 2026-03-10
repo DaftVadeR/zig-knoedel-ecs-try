@@ -1,8 +1,6 @@
 const rl = @import("rl");
 const std = @import("std");
 
-pub const Player = struct {};
-
 pub const Transform = struct {
     position: rl.Vector2,
     rotation: f32,
@@ -12,19 +10,11 @@ pub const Transform = struct {
 };
 
 pub const Movable = struct {
+    // cached destination
+    //
+    // sets destination so position is updated based on this
+    // every time it has to readjust its target.
+    // this could be every frame, or every couple frames, or every second or two.
+    destination: rl.Vector2 = rl.Vector2{ .x = 0, .y = 0 },
     speed: rl.Vector2,
-};
-
-pub const AiMovable = struct {
-    destination: rl.Vector2,
-};
-
-pub const Weapon = struct {
-    name: []const u8,
-    damage: i32,
-    range: f32,
-};
-
-pub const Armable = struct {
-    weapons: std.ArrayList(Weapon),
 };
