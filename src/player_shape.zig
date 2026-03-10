@@ -45,7 +45,7 @@ fn draw(
             // center
             en.transform.position.subtract(en.transform.size.scale(0.5)),
             en.transform.size,
-            .blue,
+            .dark_blue,
         );
 
         const head_size = 20;
@@ -77,7 +77,7 @@ fn draw(
                 .y = en.transform.position.y - en.transform.size.y / 2 - head_size,
             },
             head_vec,
-            .red,
+            .yellow,
         );
 
         // leg left
@@ -88,7 +88,7 @@ fn draw(
                 .y = en.transform.position.y + en.transform.size.y / 2,
             },
             leg_vec,
-            .green,
+            .sky_blue,
         );
 
         // leg right
@@ -99,7 +99,7 @@ fn draw(
                 .y = en.transform.position.y + en.transform.size.y / 2,
             },
             leg_vec,
-            .green,
+            .sky_blue,
         );
 
         // arm left
@@ -110,7 +110,7 @@ fn draw(
                 .y = en.transform.position.y - en.transform.size.y / 2,
             },
             arm_vec,
-            .green,
+            .dark_gray,
         );
 
         // arm right
@@ -121,7 +121,7 @@ fn draw(
                 .y = en.transform.position.y - en.transform.size.y / 2,
             },
             arm_vec,
-            .green,
+            .dark_gray,
         );
     }
 }

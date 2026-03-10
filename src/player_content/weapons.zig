@@ -22,5 +22,5 @@ pub fn getArmableForPlayerClass(alloc: kn.Alloc, player_class: pc.PlayerClass) p
 }
 
 pub fn getEnergyWeapon() pc.Weapon {
-    return pc.Weapon.init("Energy Weapon", 1.0, 10, 100.0);
+    return pc.Weapon.init("Energy Weapon", 1.0, 10, 500.0);
 }

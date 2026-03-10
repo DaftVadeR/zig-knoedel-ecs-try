@@ -31,7 +31,7 @@ pub const Weapon = struct {
     projectile_speed: f32,
     damage: f32,
     range: f32,
-    projectiles: std.ArrayList(Projectile), // active projectiles fired by this weapon
+    // projectiles: std.ArrayList(Projectile), // active projectiles fired by this weapon
 
     time_since_last_fire: f32, // seconds accumulated since last fire
 
@@ -39,10 +39,10 @@ pub const Weapon = struct {
         return .{
             .name = name,
             .attack_speed = attack_speed,
-            .projectile_speed = 200.0, // default projectile speed, can be customized per weapon
+            .projectile_speed = 300.0, // default projectile speed, can be customized per weapon
             .damage = damage,
             .range = range,
-            .projectiles = .empty,
+            // .projectiles = .empty,
             .time_since_last_fire = attack_speed, // ready to fire immediately
         };
     }
@@ -59,25 +59,24 @@ pub const Weapon = struct {
         return false;
     }
 
-    pub fn fireProjectileIfReady(
-        self: *Weapon,
-        alloc: kn.Alloc,
-        transform: *const common.Transform,
-    ) void {
-        if (self.tick(rl.getFrameTime())) {
-            std.debug.print("Firing projectile from weapon: {s}\n", .{self.name});
+    pub fn isProjectileReady(self: *Weapon) bool {
+        return (self.tick(rl.getFrameTime()));
+    }
 
-            self.projectiles.append(alloc.world, Projectile{
-                .origin = transform.position,
-                .position = transform.position,
-                .rotation = transform.rotation,
-                .speed = self.projectile_speed,
-                .damage = self.damage,
-                .range = self.range,
-                .distance_traveled = 0,
-            }) catch {
-                unreachable;
-            };
-        }
+    pub fn getProjectile(
+        self: *Weapon,
+        transform: *const common.Transform,
+    ) Projectile {
+        std.debug.print("Firing projectile from weapon: {s}\n", .{self.name});
+
+        return Projectile{
+            .origin = transform.position,
+            .position = transform.position,
+            .rotation = transform.rotation,
+            .speed = self.projectile_speed,
+            .damage = self.damage,
+            .range = self.range,
+            .distance_traveled = 0,
+        };
     }
 };

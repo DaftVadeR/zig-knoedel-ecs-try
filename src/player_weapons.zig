@@ -13,11 +13,16 @@ pub fn plugin(app: *kn.App) !void {
     // deinit alloc'ed weapons
     try app.addSystemEx(game.Schedule.cleanup, &deinit, kn.OnExit(game.AppState.gameplay));
 
+    // runs once
     try app.addSystemEx(game.Schedule.update, &addComponents, kn.InState(game.AppState.gameplay));
 
-    // try app.addSystemEx(game.Schedule.draw, &draw, kn.InState(game.AppState.gameplay));
-    try app.addSystemEx(game.Schedule.update, &update, kn.InState(game.AppState.gameplay));
+    // update weapon firing and projectile movement
+    try app.addSystemEx(game.Schedule.update, &updateWeapons, kn.InState(game.AppState.gameplay));
+    try app.addSystemEx(game.Schedule.update, &updateProjectiles, kn.InState(game.AppState.gameplay));
+
+    try app.addSystemEx(game.Schedule.draw, &draw, kn.InState(game.AppState.gameplay));
 }
+
 fn addComponents(
     alloc: kn.Alloc,
     query: kn.QueryFiltered(.{
@@ -43,16 +48,17 @@ fn deinit(alloc: kn.Alloc, query: kn.Query(.{ player_components.Player, kn.Mut(p
 
     while (it.next()) |en| {
         // first projectiles.
-        for (en.armable.weapons.items) |*wpn| {
-            wpn.projectiles.deinit(alloc.world);
-        }
+        // should not have to do this...
+        // for (en.armable.weapons.items) |*wpn| {
+        // wpn.projectiles.deinit(alloc.world);
+        // }
 
         en.armable.weapons.deinit(alloc.world);
     }
 }
 
-fn update(
-    alloc: kn.Alloc,
+fn updateWeapons(
+    cmd: kn.Commands,
     weapons: kn.Query(.{
         player_components.Player,
         kn.Mut(player_components.Armable),
@@ -69,39 +75,49 @@ fn update(
 
     while (it.next()) |en| {
         for (en.armable.weapons.items) |*wpn| {
-            // delete old projectiles
-            var i: usize = wpn.projectiles.items.len;
-
-            // performant way to remove projectiles without allocation
-            while (i > 0) {
-                i -= 1;
-
-                const pj = wpn.projectiles.items[i];
-                const distance = pj.position.distance(pj.origin);
-
-                if (distance > pj.range) {
-                    _ = wpn.projectiles.swapRemove(i);
-                }
-            }
-
-            // fire new projectiles
-            wpn.fireProjectileIfReady(
-                alloc,
-                en.transform,
-            ); // should have everything it needs from the player transform
-            //
-
-            // update existing projectiles positions
-            for (wpn.projectiles.items) |*pj| {
-                if (pj.speed > 0) {
-                    updateProjectile(pj);
-                }
+            if (wpn.isProjectileReady()) {
+                _ = try cmd.spawn(.{
+                    wpn.getProjectile(en.transform),
+                    kn.StateScoped(game.AppState){ .state = .gameplay },
+                });
             }
         }
     }
 }
 
-fn updateProjectile(pj: *player_components.Projectile) void {
+fn updateProjectiles(
+    cmd: kn.Commands,
+    projectiles: kn.Query(.{
+        kn.Mut(player_components.Projectile),
+        // kn.Mut(player_components.Armable),
+        // components.Transform,
+    }),
+) !void {
+    var it = projectiles.iterQ(
+        struct {
+            projectile: *player_components.Projectile,
+            entity: kn.Entity,
+        },
+    );
+
+    while (it.next()) |en| {
+        // performant way to remove projectiles without allocation
+        const distance = en.projectile.position.distance(en.projectile.origin);
+
+        if (distance > en.projectile.range) {
+            try cmd.despawn(en.entity);
+        }
+
+        // update existing projectiles positions
+        if (en.projectile.speed > 0) {
+            updateProjectile(en.projectile);
+        }
+    }
+}
+
+fn updateProjectile(
+    pj: *player_components.Projectile,
+) void {
     const distance = pj.speed * rl.getFrameTime();
 
     pj.position.x += @cos(pj.rotation) * distance;
@@ -111,19 +127,15 @@ fn updateProjectile(pj: *player_components.Projectile) void {
 }
 
 fn draw(
-    weapons_query: kn.Query(.{kn.Mut(player_components.Armable)}),
+    weapons_query: kn.Query(.{player_components.Projectile}),
 ) !void {
     var it = weapons_query.iterQ(
         struct {
-            armable: *player_components.Armable,
+            projectile: *const player_components.Projectile,
         },
     );
 
     while (it.next()) |en| {
-        for (en.armable.weapons.items) |*wpn| {
-            for (wpn.projectiles) |pj| {
-                rl.drawCircleV(pj.position, 10, .orange);
-            }
-        }
+        rl.drawCircleV(en.projectile.position, 10, .orange);
     }
 }

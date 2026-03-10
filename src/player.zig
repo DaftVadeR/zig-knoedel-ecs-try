@@ -54,19 +54,6 @@ fn despawn(
     }
 }
 
-/// Draw the gameplay screen with centered text and handle Escape.
 fn update() !void {}
 
-/// Draw the gameplay screen with centered text and handle Escape.
-fn draw() !void {
-    // const text = "player loaded!";
-    // const font_size: i32 = 20;
-    //
-    // // Center the text on the simulated screen.
-    // const text_w = rl.measureText(text, font_size);
-    //
-    // const x = @divTrunc(game.sim_width - text_w, 1);
-    // const y = @divTrunc(game.sim_height - font_size, 1);
-    //
-    // rl.drawText(text, x, y, font_size, rl.Color.dark_gray);
-}
+fn draw() !void {}

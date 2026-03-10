@@ -1,0 +1,72 @@
+const rl = @import("rl");
+const std = @import("std");
+const kn = @import("../game.zig").kn;
+
+// for now, enemy levels are 1 minute.
+pub fn getEnemyMap(alloc: kn.Alloc) std.AutoHashMap(i32, EnemyLevel) {
+    const map: std.AutoArrayHashMap(i32, EnemyLevel) = .init(alloc.world);
+
+    map.put(1, .{
+        .enemy_type = .Goblin,
+        .wave_scale = 0.2, // size relative to a standard wave
+        .wave_frequency = 15.0, // every 15 seconds
+    });
+
+    map.put(2, .{
+        .enemy_type = .Goblin,
+        .wave_scale = 0.4, // size relative to a standard wave
+        .wave_frequency = 15.0, // every 15 seconds
+    });
+
+    map.put(3, .{
+        .enemy_type = .GoblinShadow,
+        .wave_scale = 0.6, // size relative to a standard wave
+        .wave_frequency = 15.0, // every 15 seconds
+    });
+
+    map.put(4, .{
+        .enemy_type = .GoblinShadow,
+        .wave_scale = 0.8, // size relative to a standard wave
+        .wave_frequency = 10.0, // every 15 seconds
+    });
+}
+
+pub const Spawner = struct {
+    level: i32,
+    time_on_level: f32,
+    time_since_wave: f32,
+    // enemies_spawned: std.ArrayList(Enemy),
+    levels: std.AutoArrayHashMap(i32, EnemyLevel),
+
+    // TODO: pass through data structure representing enemy makeup for each level
+};
+
+pub const EnemyLevel = struct {
+    enemy_type: EnemyType,
+    wave_scale: f32,
+    wave_frequency: f32, // number of seconds between waves
+};
+
+pub const EnemyType = enum {
+    Goblin,
+    GoblinShadow,
+};
+
+pub const Enemy = struct {
+    enemy_type: EnemyType,
+};
+
+// happens on colliding - same tick rate for now
+pub const MeleeDamageable = struct {
+    damage: f32,
+};
+
+pub const Movable = struct {
+    // cached destination
+    //
+    // sets destination so position is updated based on this
+    // every time it has to readjust its target.
+    // this could be every frame, or every couple frames, or every second or two.
+    destination: rl.Vector2 = rl.Vector2{ .x = 0, .y = 0 },
+    speed: rl.Vector2,
+};
