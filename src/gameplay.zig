@@ -5,7 +5,7 @@
 const rl = @import("rl");
 const game = @import("game.zig");
 const player = @import("player.zig");
-// const enemy = @import("enemy.zig");
+const enemy = @import("enemy.zig");
 const resources = @import("./resources/common.zig");
 const kn = game.kn;
 
@@ -14,7 +14,7 @@ pub fn plugin(app: *kn.App) !void {
     // Only runs while we're in the gameplay state.
 
     try app.addPlugin(player);
-    // try app.addPlugin(enemy);
+    try app.addPlugin(enemy);
 
     // move this above line above if there is something more important to do before the player is added.
     try app.addSystemEx(game.Schedule.update, &updateGameplay, kn.InState(game.AppState.gameplay));

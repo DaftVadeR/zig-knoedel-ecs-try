@@ -3,40 +3,41 @@ const std = @import("std");
 const kn = @import("../game.zig").kn;
 
 // for now, enemy levels are 1 minute.
-pub fn getEnemyMap(alloc: kn.Alloc) std.AutoHashMap(i32, EnemyLevel) {
-    const map: std.AutoArrayHashMap(i32, EnemyLevel) = .init(alloc.world);
+pub fn getEnemyMap(alloc: kn.Alloc) !std.AutoHashMap(i32, EnemyLevel) {
+    var map: std.AutoHashMap(i32, EnemyLevel) = .init(alloc.world);
 
-    map.put(1, .{
+    try map.put(1, .{
         .enemy_type = .Goblin,
         .wave_scale = 0.2, // size relative to a standard wave
         .wave_frequency = 15.0, // every 15 seconds
     });
 
-    map.put(2, .{
+    try map.put(2, .{
         .enemy_type = .Goblin,
         .wave_scale = 0.4, // size relative to a standard wave
         .wave_frequency = 15.0, // every 15 seconds
     });
 
-    map.put(3, .{
+    try map.put(3, .{
         .enemy_type = .GoblinShadow,
         .wave_scale = 0.6, // size relative to a standard wave
         .wave_frequency = 15.0, // every 15 seconds
     });
 
-    map.put(4, .{
+    try map.put(4, .{
         .enemy_type = .GoblinShadow,
         .wave_scale = 0.8, // size relative to a standard wave
         .wave_frequency = 10.0, // every 15 seconds
     });
+
+    return map;
 }
 
 pub const Spawner = struct {
     level: i32,
     time_on_level: f32,
     time_since_wave: f32,
-    // enemies_spawned: std.ArrayList(Enemy),
-    levels: std.AutoArrayHashMap(i32, EnemyLevel),
+    levels: std.AutoHashMap(i32, EnemyLevel),
 
     // TODO: pass through data structure representing enemy makeup for each level
 };

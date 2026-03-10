@@ -5,8 +5,8 @@ const std = @import("std");
 const resources = @import("./resources/common.zig");
 const components = @import("./components/common.zig");
 const player_components = @import("./components/player.zig");
-const player_content = @import("./player_content/weapons.zig");
-const pcw = @import("./player_content/weapons.zig");
+const enemies_content = @import("./content/enemies.zig");
+const weapons_content = @import("./content/weapons.zig");
 
 const kn = game.kn;
 
@@ -47,7 +47,7 @@ fn addComponents(
         std.debug.print("add weapons to player\n", .{});
 
         _ = try cmd.spawn(.{
-            player_content.getEnergyWeapon(),
+            weapons_content.getEnergyWeapon(),
             kn.StateScoped(game.AppState){ .state = .gameplay },
         });
     }
