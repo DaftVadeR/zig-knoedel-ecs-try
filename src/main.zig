@@ -3,6 +3,7 @@
 const std = @import("std");
 const rl = @import("rl");
 const game = @import("game.zig");
+const resources = @import("resources/common.zig");
 
 const kn = game.kn;
 
@@ -16,20 +17,10 @@ pub fn main() !void {
 
     rl.initWindow(game.sim_width, game.sim_height, "daftshapes");
 
-    // rl.toggleFullscreen();
+    rl.toggleFullscreen();
 
     defer rl.closeWindow();
     rl.setTargetFPS(60);
-
-    // The camera applies a 2x zoom so we can work in a smaller
-    // coordinate space (sim_width x sim_height) while the actual
-    // window is larger. All draw calls use simulated coordinates.
-    const camera = rl.Camera2D{
-        .target = .{ .x = 0, .y = 0 },
-        .offset = .{ .x = 0, .y = 0 },
-        .rotation = 0,
-        .zoom = game.ZOOM,
-    };
 
     // --- ECS setup ---
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -40,6 +31,9 @@ pub fn main() !void {
     var app = try kn.App.init(allocator);
 
     defer app.deinit();
+
+    // Camera resource — centered on the player spawn point initially.
+    try app.addResource(resources.Camera.default());
 
     // State plugin: tracks AppState and auto-cleans scoped entities on transition.
     try app.addPlugin(kn.StatePlugin(game.AppState.loading, game.Schedule.cleanup));
@@ -53,16 +47,20 @@ pub fn main() !void {
     while (!rl.windowShouldClose()) {
         app.run(game.Schedule.update, true);
 
+        // Read the camera resource for drawing.
+        const cam = try app.getResource(resources.Camera);
+
         rl.beginDrawing();
 
         rl.clearBackground(rl.Color.ray_white);
-        camera.begin();
+        cam.inner.begin();
 
         app.run(game.Schedule.draw, true);
 
-        rl.drawFPS(10, 10);
+        cam.inner.end();
 
-        camera.end();
+        // Draw FPS outside camera transform so it stays in screen-space.
+        rl.drawFPS(10, 10);
 
         rl.endDrawing();
 
