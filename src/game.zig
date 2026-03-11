@@ -1,6 +1,7 @@
 // game.zig — Shared types and constants used across all plugins.
 
 const knoedel = @import("knoedel");
+const rl = @import("rl");
 
 /// The three states our game can be in.
 /// Knoedel uses this enum with its StatePlugin to drive
@@ -28,7 +29,7 @@ pub const Schedule = enum {
 
 // --- Screen / camera constants ---
 
-pub const ZOOM: f32 = 1;
+pub const ZOOM: f32 = 2;
 
 /// Actual window size in pixels.
 pub const window_width: i32 = 1920;
